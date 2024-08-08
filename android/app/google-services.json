@@ -1,0 +1,86 @@
+{
+  "project_info": {
+    "project_number": "998998929323",
+    "project_id": "pengaduan-warga-karang-rejo",
+    "storage_bucket": "pengaduan-warga-karang-rejo.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:998998929323:android:0043068a4b3352d64c2cee",
+        "android_client_info": {
+          "package_name": "com.kkn11um.pengaduan_warga"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA_-7iuJNIq3OKHVIfS-0GGtpq3CoS0Jm0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:998998929323:android:0043068a4b3352d64c2cee",
+        "android_client_info": {
+          "package_name": "com.kkn11um.pengaduan_warga.admin.debug"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA_-7iuJNIq3OKHVIfS-0GGtpq3CoS0Jm0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:998998929323:android:0043068a4b3352d64c2cee",
+        "android_client_info": {
+          "package_name": "com.kkn11um.pengaduan_warga.debug"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA_-7iuJNIq3OKHVIfS-0GGtpq3CoS0Jm0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:998998929323:android:0043068a4b3352d64c2cee",
+        "android_client_info": {
+          "package_name": "com.kkn11um.pengaduan_warga.admin"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA_-7iuJNIq3OKHVIfS-0GGtpq3CoS0Jm0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
