@@ -1,11 +1,13 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:pengaduan_warga/widgets/build_shimmer.dart';
+
 import 'package:pengaduan_warga/data/complaint_service.dart';
 import 'package:pengaduan_warga/presentation/bloc/history/history_bloc.dart';
-import 'package:pengaduan_warga/utils/theme.dart';
-import 'package:photo_view/photo_view.dart';
+import 'package:pengaduan_warga/widgets/app_about_dialog.dart';
+import 'package:pengaduan_warga/widgets/complaint_detail_bottomsheet.dart';
 
 class HistoryScreen extends StatelessWidget {
   final ComplaintService complaintService;
@@ -30,7 +32,7 @@ class HistoryScreen extends StatelessWidget {
               Icons.info_outlined,
             ),
             onPressed: () {
-              _showAboutDialog(context);
+              showAppAboutDialog(context);
             },
           ),
         ],
@@ -39,7 +41,7 @@ class HistoryScreen extends StatelessWidget {
       body: BlocBuilder<HistoryBloc, HistoryState>(
         builder: (context, state) {
           if (state is HistoryLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return buildShimmerLoadingEffect();
           }
           if (state is HistoryError) {
             return Center(child: Text('Error: ${state.message}'));
@@ -49,7 +51,7 @@ class HistoryScreen extends StatelessWidget {
               stream: state.complaintsStream,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return buildShimmerLoadingEffect();
                 }
                 if (snapshot.hasError) {
                   return Center(child: Text('Error: ${snapshot.error}'));
@@ -167,200 +169,5 @@ class HistoryScreen extends StatelessWidget {
       default:
         return Colors.grey;
     }
-  }
-
-  void showDetailDialog(BuildContext context, Map<String, dynamic> complaint) {
-    final messages = complaint['messages'] as String?;
-    final imageUrl = complaint['imageUrl'] as String?;
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          title: const Text('Detail Laporan',
-              style: TextStyle(fontWeight: FontWeight.bold)),
-          content: SizedBox(
-            width: MediaQuery.of(context).size.width,
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text('Pelapor: ${complaint['name']}',
-                      style: const TextStyle(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-                  Text('RT: ${complaint['rt'] ?? 'N/A'}'),
-                  const SizedBox(height: 8),
-                  Text('Alamat: ${complaint['address'] ?? 'N/A'}'),
-                  const SizedBox(height: 8),
-                  Text('Deskripsi: ${complaint['description'] ?? 'N/A'}'),
-                  const SizedBox(height: 16),
-                  const Text('Pesan dari administrasi:',
-                      style: TextStyle(fontWeight: FontWeight.bold)),
-                  Container(
-                    margin: const EdgeInsets.symmetric(vertical: 8),
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      messages == null || messages.isEmpty
-                          ? 'Tidak ada pesan'
-                          : messages,
-                      style: TextStyle(
-                          color: messages == null || messages.isEmpty
-                              ? Colors.grey
-                              : Colors.black),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text('Gambar:',
-                      style: TextStyle(fontWeight: FontWeight.bold)),
-                  Container(
-                    margin: const EdgeInsets.symmetric(vertical: 8),
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: imageUrl != null
-                        ? GestureDetector(
-                            onTap: () {
-                              showImageDialog(context, imageUrl);
-                            },
-                            child: Image.network(
-                              imageUrl,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return const Text('Error loading image');
-                              },
-                              loadingBuilder:
-                                  (context, child, loadingProgress) {
-                                if (loadingProgress == null) return child;
-                                return const Center(
-                                  child: SizedBox(
-                                    width: 50,
-                                    height: 50,
-                                    child: CircularProgressIndicator(),
-                                  ),
-                                );
-                              },
-                            ),
-                          )
-                        : const Text('Tidak ada gambar untuk laporan ini',
-                            style: TextStyle(color: Colors.grey)),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.white,
-                backgroundColor: Colors.orange,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-              ),
-              child: const Text('Tutup'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void showImageDialog(BuildContext context, String imageUrl) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Container(
-            padding: const EdgeInsets.all(8),
-            child: PhotoView(
-              imageProvider: NetworkImage(imageUrl),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _showAboutDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          backgroundColor: secondaryColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Container(
-            width: 400,
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Image.asset(
-                      'assets/images/app_icon_modified.png',
-                      width: 100,
-                      height: 100,
-                    ),
-                    const SizedBox(width: 16),
-                    Image.asset(
-                      'assets/images/logo_stikom.png',
-                      width: 100,
-                      height: 100,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Halo Lurah, sebuah aplikasi pengaduan warga yang dibuat untuk memudahkan warga Karang Rejo dalam melaporkan keluhan dan masalah yang terjadi di sekitar lingkungan mereka kepada pihak Kelurahan atau RT.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                const Text(
-                  'Dibuat oleh Kelompok 11 KKN Universitas Mulia 2023/2024.',
-                  textAlign: TextAlign.left,
-                  style: TextStyle(
-                    color: Colors.white60,
-                    fontSize: 14,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                const Text(
-                  'Untuk bantuan terkait maintenance aplikasi/web, dapat menghubungi:\n+62811598778 (WhatsApp)\na.n Vincentius Kennedy Winardinata',
-                  textAlign: TextAlign.left,
-                  style: TextStyle(
-                    color: Colors.white60,
-                    fontSize: 14,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
   }
 }

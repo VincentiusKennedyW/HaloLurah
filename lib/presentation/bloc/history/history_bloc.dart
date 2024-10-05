@@ -1,4 +1,3 @@
-// ignore: depend_on_referenced_packages
 import 'package:bloc/bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pengaduan_warga/data/complaint_service.dart';

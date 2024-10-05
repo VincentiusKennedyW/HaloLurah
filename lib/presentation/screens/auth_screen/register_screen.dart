@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pengaduan_warga/presentation/bloc/login_bloc/login_bloc.dart';
 import 'package:pengaduan_warga/presentation/bloc/register_bloc/register_bloc.dart';
 import 'package:pengaduan_warga/utils/theme.dart';
 
@@ -41,28 +40,23 @@ class _RegisterScreenState extends State<RegisterScreen>
             padding: const EdgeInsets.symmetric(horizontal: 28),
             child: BlocListener<RegisterBloc, RegisterState>(
               listener: (context, state) {
-                state.mapOrNull(
-                  registered: (value) {
-                    Fluttertoast.showToast(
-                      msg: 'Registrasi Berhasil',
-                      backgroundColor: Colors.green,
-                      gravity: ToastGravity.BOTTOM,
-                      textColor: Colors.white,
-                    );
-                    context
-                        .read<LoginBloc>()
-                        .add(const LoginEvent.isLoggedIn());
-                  },
-                  registerError: (value) {
-                    final message = removeErrorCode(value.message);
-                    Fluttertoast.showToast(
-                      msg: message,
-                      backgroundColor: Colors.red,
-                      gravity: ToastGravity.BOTTOM,
-                      textColor: Colors.white,
-                    );
-                  },
-                );
+                if (state is Registered) {
+                  Fluttertoast.showToast(
+                    msg: 'Registrasi Berhasil',
+                    backgroundColor: Colors.green,
+                    gravity: ToastGravity.BOTTOM,
+                    textColor: Colors.white,
+                  );
+                  context.pop();
+                } else if (state is RegisterError) {
+                  final message = removeErrorCode(state.message);
+                  Fluttertoast.showToast(
+                    msg: message,
+                    backgroundColor: Colors.red,
+                    gravity: ToastGravity.BOTTOM,
+                    textColor: Colors.white,
+                  );
+                }
               },
               child: BlocBuilder<RegisterBloc, RegisterState>(
                 builder: (context, state) {
@@ -246,11 +240,11 @@ class _RegisterScreenState extends State<RegisterScreen>
                           onPressed: () {
                             if (_formKey.currentState!.validate()) {
                               BlocProvider.of<RegisterBloc>(context).add(
-                                RegisterEvent.register(
-                                  username: _usernameController.text,
-                                  email: _emailController.text,
-                                  password: _passwordController.text,
-                                  role: 'user',
+                                Register(
+                                  _usernameController.text,
+                                  _emailController.text,
+                                  _passwordController.text,
+                                  'user',
                                 ),
                               );
                             }
@@ -263,18 +257,18 @@ class _RegisterScreenState extends State<RegisterScreen>
                               borderRadius: BorderRadius.circular(30.0),
                             ),
                           ),
-                          child: state.maybeWhen(
-                            registerLoading: () =>
-                                const CircularProgressIndicator(),
-                            orElse: () => const Text(
-                              'Register',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: primaryColor,
-                              ),
-                            ),
-                          ),
+                          child: state is RegisterLoading
+                              ? const CircularProgressIndicator(
+                                  color: primaryColor,
+                                )
+                              : const Text(
+                                  'Register',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: primaryColor,
+                                  ),
+                                ),
                         ),
                         const SizedBox(height: 20),
                         Column(

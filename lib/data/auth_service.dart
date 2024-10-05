@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class AuthService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -55,6 +56,16 @@ class AuthService {
         email: email,
         password: password,
       );
+
+      String? fcmToken = await FirebaseMessaging.instance.getToken();
+
+      await _firestore
+          .collection('users')
+          .doc(userCredential.user!.uid)
+          .update({
+        'fcmToken': fcmToken,
+      });
+
       return userCredential;
     } on FirebaseAuthException catch (error) {
       if (error.code == 'user-not-found') {
@@ -89,6 +100,10 @@ class AuthService {
   Future<void> signOutUser() async {
     final User? firebaseUser = FirebaseAuth.instance.currentUser;
     if (firebaseUser != null) {
+      await _firestore.collection('users').doc(firebaseUser.uid).update({
+        'fcmToken': null,
+      });
+
       await _auth.signOut();
     }
   }

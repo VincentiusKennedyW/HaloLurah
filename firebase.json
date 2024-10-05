@@ -1,1 +1,40 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"pengaduan-warga-karang-rejo","appId":"1:998998929323:android:0043068a4b3352d64c2cee","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"pengaduan-warga-karang-rejo","configurations":{"android":"1:998998929323:android:0043068a4b3352d64c2cee","web":"1:998998929323:web:b782c2aa8bbe67424c2cee","windows":"1:998998929323:web:dae04a611dac76574c2cee"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "pengaduan-warga-karang-rejo",
+          "appId": "1:998998929323:android:0043068a4b3352d64c2cee",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "pengaduan-warga-karang-rejo",
+          "configurations": {
+            "android": "1:998998929323:android:0043068a4b3352d64c2cee",
+            "web": "1:998998929323:web:b782c2aa8bbe67424c2cee",
+            "windows": "1:998998929323:web:dae04a611dac76574c2cee"
+          }
+        }
+      }
+    }
+  },
+  "hosting": [
+    {
+      "target": "halolurah-karangrejo",
+      "public": "build/web",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ]
+    }
+  ]
+}

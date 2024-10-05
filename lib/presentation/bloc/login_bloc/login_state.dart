@@ -1,11 +1,41 @@
 part of 'login_bloc.dart';
 
-@freezed
-class LoginState with _$LoginState {
-  const factory LoginState.loginInitial() = _LoginInitial;
-  const factory LoginState.notLoggedIn() = _NotLoggedIn;
-  const factory LoginState.loginLoading() = _LoginLoading;
-  const factory LoginState.loggedIn() = _LoggedIn;
-  const factory LoginState.loginError(String message) = _LoginError;
-  const factory LoginState.loginRoleError(String message) = _LoginRoleError;
+abstract class LoginState extends Equatable {
+  const LoginState();
+
+  @override
+  List<Object?> get props => [];
+}
+
+class LoginInitial extends LoginState {}
+
+class NotLoggedIn extends LoginState {}
+
+class LoginLoading extends LoginState {}
+
+class LoggedIn extends LoginState {
+  final String role;
+
+  const LoggedIn(this.role);
+
+  @override
+  List<Object?> get props => [role];
+}
+
+class LoginError extends LoginState {
+  final String message;
+
+  const LoginError(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
+class LoginRoleError extends LoginState {
+  final String message;
+
+  const LoginRoleError(this.message);
+
+  @override
+  List<Object?> get props => [message];
 }

@@ -1,0 +1,16 @@
+{
+  "projects": {
+    "default": "pengaduan-warga-karang-rejo"
+  },
+  "targets": {
+    "pengaduan-warga-karang-rejo": {
+      "hosting": {
+        "halolurah-karangrejo": [
+          "halolurah-karangrejo"
+        ]
+      }
+    }
+  },
+  "etags": {},
+  "dataconnectEmulatorConfig": {}
+}

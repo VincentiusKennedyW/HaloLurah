@@ -1,4 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pengaduan_warga/firebase_options.dart';
@@ -7,14 +8,24 @@ import 'package:pengaduan_warga/presentation/bloc/history/history_bloc.dart';
 import 'package:pengaduan_warga/presentation/bloc/login_bloc/login_bloc.dart';
 import 'package:pengaduan_warga/presentation/bloc/register_bloc/register_bloc.dart';
 import 'package:pengaduan_warga/utils/injection.dart' as di;
+import 'package:pengaduan_warga/utils/notification_service.dart';
 import 'package:pengaduan_warga/utils/routes.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:pengaduan_warga/utils/theme.dart';
 
 void main() async {
+  usePathUrlStrategy();
   WidgetsFlutterBinding.ensureInitialized();
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
+  NotificationService notificationService = NotificationService();
+  await notificationService.initialize();
+
   di.init();
   runApp(const MainApp());
 }
@@ -24,13 +35,10 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
-
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (context) =>
-              di.locator<LoginBloc>()..add(const LoginEvent.isLoggedIn()),
+          create: (context) => di.locator<LoginBloc>()..add(IsLoggedIn()),
         ),
         BlocProvider(
           create: (context) => di.locator<RegisterBloc>(),
@@ -43,19 +51,15 @@ class MainApp extends StatelessWidget {
         ),
       ],
       child: BlocListener<LoginBloc, LoginState>(
-        listener: (context, state) async {
-          state.whenOrNull(
-            loggedIn: () {
-              router.goNamed('complaint_form');
-            },
-            notLoggedIn: () {
-              router.goNamed('login');
-            },
-          );
+        listener: (context, state) {
+          if (state is LoggedIn) {
+            router.goNamed('complaint_form');
+          } else if (state is NotLoggedIn) {
+            router.goNamed('login');
+          }
         },
         child: MaterialApp.router(
           debugShowCheckedModeBanner: false,
-          scaffoldMessengerKey: scaffoldMessengerKey,
           title: 'Pengaduan Warga',
           theme: ThemeData(
             textTheme: myTextTheme,

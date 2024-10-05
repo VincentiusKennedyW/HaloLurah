@@ -1,20 +1,18 @@
-// ignore: depend_on_referenced_packages
 import 'package:bloc/bloc.dart';
+import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:pengaduan_warga/data/auth_service.dart';
 
-part 'login_bloc.freezed.dart';
 part 'login_event.dart';
 part 'login_state.dart';
 
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
   final AuthService _authService;
 
-  LoginBloc(this._authService) : super(const _NotLoggedIn()) {
-    on<_Login>((event, emit) async {
-      if (state is _NotLoggedIn) {
-        emit(const LoginState.loginLoading());
+  LoginBloc(this._authService) : super(NotLoggedIn()) {
+    on<Login>((event, emit) async {
+      if (state is NotLoggedIn) {
+        emit(LoginLoading());
         try {
           UserCredential userCredential = await _authService.signInUser(
             event.email,
@@ -22,40 +20,41 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
           );
           String uid = userCredential.user?.uid ?? '';
           String role = await _authService.getUserRole(uid);
+
           if (role == 'user') {
-            emit(const LoginState.loggedIn());
+            emit(LoggedIn(role));
           } else {
-            emit(const LoginState.loginRoleError(
+            emit(const LoginRoleError(
                 'Akses Ditolak: Role admin tidak diizinkan.'));
             await _authService.signOutUser();
-            emit(const LoginState.notLoggedIn());
+            emit(NotLoggedIn());
           }
         } catch (error) {
-          emit(LoginState.loginError(error.toString()));
-          emit(const LoginState.notLoggedIn());
+          emit(LoginError(error.toString()));
+          emit(NotLoggedIn());
         }
       }
     });
 
-    on<_LoggedOut>((event, emit) async {
-      if (state is _LoggedIn) {
+    on<LoggedOut>((event, emit) async {
+      if (state is LoggedIn) {
         await _authService.signOutUser();
-        emit(const LoginState.notLoggedIn());
+        emit(NotLoggedIn());
       }
     });
 
-    on<_IsLoggedIn>((event, emit) async {
+    on<IsLoggedIn>((event, emit) async {
       User? user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         String uid = user.uid;
         String role = await _authService.getUserRole(uid);
         if (role == 'user') {
-          emit(const LoginState.loggedIn());
+          emit(LoggedIn(role));
         } else {
-          emit(const LoginState.notLoggedIn());
+          emit(NotLoggedIn());
         }
       } else {
-        emit(const LoginState.notLoggedIn());
+        emit(NotLoggedIn());
       }
     });
   }

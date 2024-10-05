@@ -36,33 +36,29 @@ class _LoginScreenState extends State<LoginScreen>
             padding: const EdgeInsets.symmetric(horizontal: 28),
             child: BlocListener<LoginBloc, LoginState>(
               listener: (context, state) {
-                state.mapOrNull(
-                  loggedIn: (value) {
-                    Fluttertoast.showToast(
-                      msg: 'Login Berhasil',
-                      backgroundColor: Colors.green,
-                      gravity: ToastGravity.BOTTOM,
-                      textColor: Colors.white,
-                    );
-                  },
-                  loginRoleError: (value) {
-                    Fluttertoast.showToast(
-                      msg: value.message,
-                      backgroundColor: Colors.red,
-                      gravity: ToastGravity.BOTTOM,
-                      textColor: Colors.white,
-                    );
-                  },
-                  loginError: (value) {
-                    final message = removeErrorCode(value.message);
-                    Fluttertoast.showToast(
-                      msg: message,
-                      backgroundColor: Colors.red,
-                      gravity: ToastGravity.BOTTOM,
-                      textColor: Colors.white,
-                    );
-                  },
-                );
+                if (state is LoggedIn) {
+                  Fluttertoast.showToast(
+                    msg: 'Login Berhasil',
+                    backgroundColor: Colors.green,
+                    gravity: ToastGravity.BOTTOM,
+                    textColor: Colors.white,
+                  );
+                } else if (state is LoginRoleError) {
+                  Fluttertoast.showToast(
+                    msg: state.message,
+                    backgroundColor: Colors.red,
+                    gravity: ToastGravity.BOTTOM,
+                    textColor: Colors.white,
+                  );
+                } else if (state is LoginError) {
+                  final message = removeErrorCode(state.message);
+                  Fluttertoast.showToast(
+                    msg: message,
+                    backgroundColor: Colors.red,
+                    gravity: ToastGravity.BOTTOM,
+                    textColor: Colors.white,
+                  );
+                }
               },
               child: BlocBuilder<LoginBloc, LoginState>(
                 builder: (context, state) {
@@ -112,6 +108,8 @@ class _LoginScreenState extends State<LoginScreen>
                             hintText: 'Masukkan Email Anda',
                             filled: true,
                             fillColor: thirdColor,
+                            errorStyle:
+                                const TextStyle(color: Color(0xFFf09292)),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(30.0),
                             ),
@@ -141,6 +139,8 @@ class _LoginScreenState extends State<LoginScreen>
                             hintText: 'Masukkan Password Anda',
                             filled: true,
                             fillColor: thirdColor,
+                            errorStyle:
+                                const TextStyle(color: Color(0xFFf09292)),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(30.0),
                             ),
@@ -181,9 +181,9 @@ class _LoginScreenState extends State<LoginScreen>
                           onPressed: () {
                             if (_formKey.currentState!.validate()) {
                               BlocProvider.of<LoginBloc>(context).add(
-                                LoginEvent.login(
-                                  email: _emailController.text,
-                                  password: _passwordController.text,
+                                Login(
+                                  _emailController.text,
+                                  _passwordController.text,
                                 ),
                               );
                             }
@@ -196,18 +196,16 @@ class _LoginScreenState extends State<LoginScreen>
                               borderRadius: BorderRadius.circular(30.0),
                             ),
                           ),
-                          child: state.maybeWhen(
-                            loginLoading: () =>
-                                const CircularProgressIndicator(),
-                            orElse: () => const Text(
-                              'Login',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: primaryColor,
-                              ),
-                            ),
-                          ),
+                          child: state is LoginLoading
+                              ? const CircularProgressIndicator()
+                              : const Text(
+                                  'Login',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: primaryColor,
+                                  ),
+                                ),
                         ),
                         const SizedBox(height: 20),
                         Column(

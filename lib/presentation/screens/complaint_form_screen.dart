@@ -4,6 +4,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
@@ -28,6 +29,7 @@ class _ComplaintFormScreenState extends State<ComplaintFormScreen> {
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   XFile? _image;
+  bool _isLoadingImage = false;
   String? selectedRT;
 
   @override
@@ -62,9 +64,7 @@ class _ComplaintFormScreenState extends State<ComplaintFormScreen> {
                         ),
                         TextButton(
                           onPressed: () {
-                            context
-                                .read<LoginBloc>()
-                                .add(const LoginEvent.loggedOut());
+                            context.read<LoginBloc>().add(LoggedOut());
                             context.pop();
                           },
                           child: const Text(
@@ -85,30 +85,29 @@ class _ComplaintFormScreenState extends State<ComplaintFormScreen> {
         ),
         body: BlocListener<ComplaintFormBloc, ComplaintFormState>(
           listener: (context, state) {
-            final scaffoldMessenger = ScaffoldMessenger.of(context);
-
-            state.when(
-              complaintFormInitial: () {},
-              complaintFormLoading: () {
-                scaffoldMessenger.showSnackBar(
-                  const SnackBar(
-                    content: Text('Mengirim laporan...'),
-                    duration: Duration(seconds: 1),
-                  ),
-                );
-              },
-              complaintFormSuccess: () {
-                scaffoldMessenger.showSnackBar(
-                  const SnackBar(content: Text('Laporan berhasil dikirim')),
-                );
-                _clearForm();
-              },
-              complaintFormError: (message) {
-                scaffoldMessenger.showSnackBar(
-                  SnackBar(content: Text('Gagal mengirim laporan: $message')),
-                );
-              },
-            );
+            if (state is ComplaintFormInitial) {
+            } else if (state is ComplaintFormLoading) {
+              Fluttertoast.showToast(
+                msg: 'Mengirim laporan...',
+                toastLength: Toast.LENGTH_SHORT,
+                gravity: ToastGravity.BOTTOM,
+              );
+            } else if (state is ComplaintFormSuccess) {
+              Fluttertoast.showToast(
+                msg: 'Laporan berhasil dikirim',
+                toastLength: Toast.LENGTH_SHORT,
+                gravity: ToastGravity.BOTTOM,
+                backgroundColor: Colors.green,
+              );
+              _clearForm();
+            } else if (state is ComplaintFormError) {
+              Fluttertoast.showToast(
+                msg: 'Gagal mengirim laporan: ${state.message}',
+                toastLength: Toast.LENGTH_SHORT,
+                gravity: ToastGravity.BOTTOM,
+                backgroundColor: Colors.red,
+              );
+            }
           },
           child: Padding(
             padding: const EdgeInsets.only(
@@ -223,8 +222,8 @@ class _ComplaintFormScreenState extends State<ComplaintFormScreen> {
                   TextFormField(
                     controller: _addressController,
                     decoration: const InputDecoration(
-                      labelText: 'Alamat',
-                      hintText: 'Alamat pelapor',
+                      labelText: 'Lokasi Laporan',
+                      hintText: 'Lokasi laporan kejadian',
                       hintStyle: TextStyle(
                         color: Colors.black26,
                       ),
@@ -260,7 +259,10 @@ class _ComplaintFormScreenState extends State<ComplaintFormScreen> {
                   ),
                   const SizedBox(height: 16),
                   GestureDetector(
-                    onTap: () => _showImageSourceActionSheet(context),
+                    onTap: () {
+                      FocusScope.of(context).unfocus();
+                      _showImageSourceActionSheet(context);
+                    },
                     child: Container(
                       height: 150,
                       decoration: BoxDecoration(
@@ -268,14 +270,18 @@ class _ComplaintFormScreenState extends State<ComplaintFormScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Center(
-                        child: _image == null
-                            ? const Text(
-                                'Tekan untuk memilih gambar (opsional)',
-                                style: TextStyle(
-                                  color: Colors.black38,
-                                ),
-                              )
-                            : Image.file(File(_image!.path)),
+                        child: _isLoadingImage
+                            ? const CircularProgressIndicator()
+                            : (_image == null
+                                ? const Text(
+                                    'Tekan untuk memilih gambar (opsional)',
+                                    style: TextStyle(
+                                      color: Colors.black38,
+                                    ),
+                                  )
+                                : Image.file(
+                                    File(_image!.path),
+                                  )),
                       ),
                     ),
                   ),
@@ -284,11 +290,9 @@ class _ComplaintFormScreenState extends State<ComplaintFormScreen> {
                     builder: (context, state) {
                       return ElevatedButton(
                         onPressed: () => _submitForm(context),
-                        child: state.maybeWhen(
-                          complaintFormLoading: () =>
-                              const CircularProgressIndicator(),
-                          orElse: () => const Text('Kirim Laporan'),
-                        ),
+                        child: state is ComplaintFormLoading
+                            ? const CircularProgressIndicator()
+                            : const Text('Kirim Laporan'),
                       );
                     },
                   ),
@@ -302,6 +306,10 @@ class _ComplaintFormScreenState extends State<ComplaintFormScreen> {
   }
 
   Future<void> _pickImage(ImageSource source) async {
+    setState(() {
+      _isLoadingImage = true;
+    });
+
     final ImagePicker picker = ImagePicker();
     final XFile? pickedImage = await picker.pickImage(source: source);
 
@@ -309,6 +317,11 @@ class _ComplaintFormScreenState extends State<ComplaintFormScreen> {
       final resizedImage = await _resizeImage(File(pickedImage.path));
       setState(() {
         _image = XFile(resizedImage.path);
+        _isLoadingImage = false;
+      });
+    } else {
+      setState(() {
+        _isLoadingImage = false;
       });
     }
   }
@@ -391,7 +404,7 @@ class _ComplaintFormScreenState extends State<ComplaintFormScreen> {
 
       _rtController.text = selectedRT!;
 
-      context.read<ComplaintFormBloc>().add(ComplaintFormEvent.submitComplaint(
+      context.read<ComplaintFormBloc>().add(SubmitComplaint(
             name: _nameController.text,
             phone: _phoneController.text,
             rt: _rtController.text,
